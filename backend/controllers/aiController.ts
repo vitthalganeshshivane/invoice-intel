@@ -115,3 +115,92 @@ Start the email with "Subject:".
     }
   }
 };
+
+export const getDashboardSummary = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const invoices = await Invoice.find({ user: userId });
+
+    if (invoices.length === 0) {
+      return res.status(200).json({
+        insights: ["No invoice data available to generate insights."],
+      });
+    }
+
+    const totalInvoices = invoices.length;
+    const paidInvoices = invoices.filter((inv) => inv.status === "Paid");
+    const unpaidInvoices = invoices.filter((inv) => inv.status !== "Paid");
+
+    const totalRevenue = paidInvoices.reduce((acc, inv) => acc + inv.total, 0);
+
+    const totalOutstanding = unpaidInvoices.reduce(
+      (acc, inv) => acc + inv.total,
+      0
+    );
+
+    const dataSummary = `
+- Total invoices: ${totalInvoices}
+- Paid invoices: ${paidInvoices.length}
+- Unpaid/pending invoices: ${unpaidInvoices.length}
+- Revenue from paid invoices: ${totalRevenue.toFixed(2)}
+- Outstanding amount: ${totalOutstanding.toFixed(2)}
+- Recent invoices:
+${invoices
+  .slice(0, 5)
+  .map(
+    (inv) =>
+      `Invoice #${inv.invoiceNumber} for ${inv.total.toFixed(2)} (${
+        inv.status
+      })`
+  )
+  .join("\n")}
+`;
+
+    const prompt = `
+You are a friendly and insightful financial analyst for a small business owner.
+
+Based on the invoice summary below, provide 2–3 concise, actionable insights.
+Be encouraging and practical. Do NOT repeat the raw data.
+
+If outstanding amount is high, suggest reminders.
+If revenue is strong, be motivating.
+
+Invoice Summary:
+${dataSummary}
+
+Return ONLY valid JSON in this format:
+{
+  "insights": ["string", "string"]
+}
+`;
+
+    const aiText = await callGemini(prompt);
+
+    if (!aiText) {
+      return res.status(500).json({
+        message: "AI did not return insights",
+      });
+    }
+
+    const cleaned = aiText.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+
+    return res.status(200).json({
+      message: "Dashboard insights generated successfully",
+      data: parsed,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Dashboard summary error:", error.message);
+      return res.status(500).json({
+        message: "Failed to generate dashboard insights",
+        details: error.message,
+      });
+    }
+  }
+};

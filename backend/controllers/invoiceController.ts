@@ -52,3 +52,16 @@ export const createInvoice = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const getInvoices = async (req: Request, res: Response) => {
+  try {
+    const invoices = await Invoice.find().populate("user", "name email");
+    res.status(200).json(invoices);
+  } catch (error) {
+    if (error instanceof Error) {
+      res
+        .status(500)
+        .json({ message: "Error creating invoice", error: error.message });
+    }
+  }
+};

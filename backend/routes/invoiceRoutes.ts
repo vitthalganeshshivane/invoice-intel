@@ -11,6 +11,6 @@ import protect from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").post(protect, createInvoice);
+router.route("/").post(protect, createInvoice).get(protect, getInvoices);
 
 export default router;

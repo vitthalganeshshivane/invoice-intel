@@ -148,3 +148,24 @@ export const updateInvoice = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const deleteInvoice = async (req: Request, res: Response) => {
+  try {
+    const invoice = await Invoice.findByIdAndDelete(req.params.id);
+    if (!invoice) {
+      res.status(404).json({ message: "Invoice not found" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Invoice deleted successfully.....!",
+      deleteInvoice: deleteInvoice,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      res
+        .status(500)
+        .json({ message: "Error creating invoice", error: error.message });
+    }
+  }
+};

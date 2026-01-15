@@ -13,6 +13,10 @@ const router = express.Router();
 
 router.route("/").post(protect, createInvoice).get(protect, getInvoices);
 
-router.route("/:id").get(protect, getInvoiceById).put(protect, updateInvoice);
+router
+  .route("/:id")
+  .get(protect, getInvoiceById)
+  .put(protect, updateInvoice)
+  .delete(protect, deleteInvoice);
 
 export default router;

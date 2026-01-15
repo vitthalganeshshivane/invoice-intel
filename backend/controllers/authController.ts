@@ -86,3 +86,31 @@ export const getMe = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const updateUserProfile = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.businessName = req.body.businessName || user.businessName;
+      user.address = req.body.address || user.address;
+      user.phone = req.body.phone || user.phone;
+
+      const updatedUser = await user.save();
+
+      res.status(200).json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        businessName: updatedUser.businessName,
+        address: updatedUser.address,
+        phone: updatedUser.phone,
+      });
+    } else {
+      res.status(404).json({ message: "Error not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

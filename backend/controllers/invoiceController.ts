@@ -65,3 +65,25 @@ export const getInvoices = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const getInvoiceById = async (req: Request, res: Response) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id).populate(
+      "user",
+      "name, email"
+    );
+
+    if (!invoice) {
+      res.status(404).json({ message: "Invoice not found" });
+      return;
+    }
+
+    res.status(200).json(invoice);
+  } catch (error) {
+    if (error instanceof Error) {
+      res
+        .status(500)
+        .json({ message: "Error creating invoice", error: error.message });
+    }
+  }
+};

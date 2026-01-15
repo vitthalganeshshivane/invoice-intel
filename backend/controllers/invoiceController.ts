@@ -87,3 +87,64 @@ export const getInvoiceById = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const updateInvoice = async (req: Request, res: Response) => {
+  try {
+    const {
+      invoiceNumber,
+      invoiceDate,
+      dueDate,
+      billFrom,
+      billTo,
+      items,
+      notes,
+      paymentTerms,
+    } = req.body;
+
+    let subTotal = 0;
+    let taxTotal = 0;
+    if (items && items.length > 0) {
+      items.forEach((item: IItem) => {
+        subTotal += item.unitPrice * item.quantity;
+        taxTotal +=
+          (item.unitPrice * item.quantity * (item.taxPercent || 0)) / 100;
+      });
+    }
+
+    const total = subTotal + taxTotal;
+
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+      req.params.id,
+      {
+        invoiceNumber,
+        invoiceDate,
+        dueDate,
+        billFrom,
+        billTo,
+        items,
+        notes,
+        paymentTerms,
+        subTotal,
+        taxTotal,
+        total,
+      },
+      { new: true }
+    );
+
+    if (!updatedInvoice) {
+      res.status(404).json({ message: "Invoice not found" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Invoice updated successfull",
+      updatedInvoice: updatedInvoice,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      res
+        .status(500)
+        .json({ message: "Error updating invoice", error: error.message });
+    }
+  }
+};

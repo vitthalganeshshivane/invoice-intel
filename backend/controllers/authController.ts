@@ -64,3 +64,25 @@ export const loginUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (user) {
+      res.status(200).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+
+        businessName: user.businessName || "",
+        address: user.address || "",
+        phone: user.phone || "",
+      });
+    } else {
+      res.status(401).json({ message: "error while fetching user data" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

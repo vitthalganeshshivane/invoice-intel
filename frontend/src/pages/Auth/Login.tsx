@@ -39,6 +39,125 @@ const Login = () => {
     password: false,
   });
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target as {
+      name: FieldName;
+      value: string;
+    };
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (touched[name]) {
+      const newFieldErrors = { ...fieldErrors };
+
+      if (name === "email") {
+        newFieldErrors.email = validateEmail(value);
+      } else if (name === "password") {
+        newFieldErrors.password = validatePassword(value);
+      }
+      setFieldErrors(newFieldErrors);
+    }
+
+    if (error) setError("");
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target as {
+      name: FieldName;
+    };
+
+    setTouched((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
+
+    const newFieldErrors = { ...fieldErrors };
+
+    if (name === "email") {
+      newFieldErrors.email = validateEmail(formData.email);
+    } else if (name === "password") {
+      newFieldErrors.password = validatePassword(formData.password);
+    }
+
+    setFieldErrors(newFieldErrors);
+  };
+
+  const isFormValid = () => {
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+
+    return !emailError && !passwordError && formData.email && formData.password;
+  };
+
+  const handleSubmit = async () => {
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+
+    if (emailError || passwordError) {
+      setFieldErrors({
+        email: emailError,
+        password: passwordError,
+      });
+      setTouched({
+        email: true,
+        password: true,
+      });
+
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, formData);
+
+      if (response.status === 200) {
+        const { token, _id, name, email } = response.data;
+
+        if (token) {
+          console.log("LOGIN RESPONSE:", response.data);
+
+          const user = {
+            id: _id,
+            name,
+            email,
+          };
+
+          console.log("CALLING login() WITH:", user, token);
+
+          login(user, token);
+
+          console.log("AFTER login(), localStorage:", {
+            token: localStorage.getItem("token"),
+            user: localStorage.getItem("user"),
+          });
+
+          navigate("/dashboard");
+        }
+      } else {
+        setError(response.data.message || "Invalid Credentials");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        setError(error.response.data.message);
+      } else {
+        setError("An error occurred during login.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="w-full max-w-sm">

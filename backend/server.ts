@@ -3,9 +3,15 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
+
 import authRoutes from "./routes/authRoutes.js";
+import invoiceRoutes from "./routes/invoiceRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 
 const app = express();
+
+//middleware
+app.use(express.json());
 
 //Middleware to hanlde cors
 app.use(
@@ -18,10 +24,9 @@ app.use(
 
 connectDB();
 
-//middleware
-app.use(express.json());
-
 app.use("/api/auth", authRoutes);
+app.use("/api/invoices", invoiceRoutes);
+app.use("/api/ai", aiRoutes);
 
 const port = process.env.PORT || 5000;
 

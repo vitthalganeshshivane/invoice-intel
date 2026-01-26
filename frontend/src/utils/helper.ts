@@ -3,3 +3,9 @@ export const validateEmail = (email: string): string => {
   if (!/^\S+@\S+\.\S+$/.test(email)) return "Invalid email";
   return "";
 };
+
+export const validatePassword = (password: string): string => {
+  if (!password) return "Password is required";
+  if (password.length < 6) return "Password must be at least 6 characters";
+  return "";
+};

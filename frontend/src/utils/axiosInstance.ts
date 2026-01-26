@@ -1,8 +1,13 @@
-import axios from "axios";
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from "axios";
 
 import { BASE_URL } from "./apiPath";
 
-const axiosInstance = axios.create({
+const axiosInstance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 80000,
   headers: {
@@ -12,24 +17,31 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const accessToken = localStorage.getItem("token");
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+  (config: InternalAxiosRequestConfig) => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
-  (error) => {
+  (error: AxiosError) => {
     return Promise.reject(error);
   }
 );
 
 axiosInstance.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     return response;
   },
-  (error) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (error: AxiosError<any>) => {
     if (error.response) {
+      if (error.response.status === 401) {
+        console.error("Unauthorized – token may be invalid");
+      }
+
       if (error.response.status === 500) {
         console.error("Server error. Please try again later.");
       }

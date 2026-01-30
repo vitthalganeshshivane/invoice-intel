@@ -16,10 +16,11 @@ import CreateInvoice from "./pages/Invoices/CreateInvoice";
 import InvoiceDetail from "./pages/Invoices/InvoiceDetail";
 import ProfilePage from "./pages/Profile/ProfilePage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { AuthProvider } from "./context/AuthContext";
 
 function App() {
   return (
-    <div>
+    <AuthProvider>
       <Toaster
         toastOptions={{
           className: "",
@@ -48,7 +49,7 @@ function App() {
           <Route path="/*" element={<Navigate to={`/`} replace />} />
         </Routes>
       </Router>
-    </div>
+    </AuthProvider>
   );
 }
 

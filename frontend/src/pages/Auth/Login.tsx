@@ -120,23 +120,13 @@ const Login = () => {
         const { token, _id, name, email } = response.data;
 
         if (token) {
-          console.log("LOGIN RESPONSE:", response.data);
-
           const user = {
             id: _id,
             name,
             email,
           };
 
-          console.log("CALLING login() WITH:", user, token);
-
           login(user, token);
-
-          console.log("AFTER login(), localStorage:", {
-            token: localStorage.getItem("token"),
-            user: localStorage.getItem("user"),
-          });
-
           navigate("/dashboard");
         }
       } else {
